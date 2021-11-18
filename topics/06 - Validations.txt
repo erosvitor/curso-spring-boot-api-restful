@@ -1,0 +1,133 @@
+
+====================================================================================================
+RESTFULL API COURSE - VALIDATIONS
+====================================================================================================
+
+Data validation
+----------------------------------------------------------------------------------------------------
+- Add the following dependencies
+
+  Validation
+
+- Add @Valid anotation in 'insert' method on 'ExpenseController' class
+
+  ...
+  @PostMapping("/expense")
+  public ResponseEntity<Expense> insert(@Valid @RequestBody Expense expense) {
+    Expense result = service.insert(expense);
+    return ResponseEntity.ok(result);
+  }
+  ...
+
+- Open 'Expense' class and add @Size(min=5) annotation just above the 'description' attribute
+
+- Testing
+
+  - Start the application
+
+  - Open the Postman
+
+  - Send POST request
+
+    Tip: You will receive 400 Bad Request response. The user do not know why it receive a Bad Request.
+
+
+Improving response
+----------------------------------------------------------------------------------------------------
+- Add the following code in 'ResponseEntityExceptionHandlerCustom' class
+
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    ExceptionResponse exceptionResponse = new ExceptionResponse(status.value(), ex.getMessage());
+    return new ResponseEntity<>(exceptionResponse, status);
+  }
+  
+- Testing
+
+  - Start the application
+
+  - Open the Postman
+
+  - Send POST request
+
+    Tip: Now the user receive a long exception message. It is difficult to understand for the user.
+
+
+Customizing exception message
+----------------------------------------------------------------------------------------------------
+- Change the 'handleMethodArgumentNotValid' method to:
+
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    ExceptionResponse exceptionResponse = new ExceptionResponse(status.value(), "Validation Failed: " + ex.getBindingResult().toString());  
+    return new ResponseEntity<>(exceptionResponse, status);
+  }
+
+- Testing
+
+  - Start the application
+
+  - Open the Postman
+
+  - Send POST request
+
+    Tip: Now the user receive an exception message more friendly.
+
+
+Improving the customized exception message
+----------------------------------------------------------------------------------------------------
+- Add the following attribute in the @Size annotation
+
+  message="Description should have at least 5 characters"
+
+- Testing
+
+  - Start the application
+
+  - Open the Postman
+
+  - Send POST request
+
+
+More validations
+----------------------------------------------------------------------------------------------------
+- Add the following validations in 'Expense' class
+
+  ...
+  @NotNull(message="Description is required")
+  @Size(min=3, message="Description should have at least 3 characters")
+  private String description;
+  
+  @NotNull(message="Value is required")
+  @DecimalMin(value="0.01", message="Value must be greater than or equal to 0.01")
+  private Double value;
+  ...
+
+- Change the 'handleMethodArgumentNotValid' method to:
+
+  ...
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    // Get all errors
+    List<String> errors = ex.getBindingResult()
+        .getFieldErrors()
+        .stream()
+        .map(x -> x.getDefaultMessage())
+        .collect(Collectors.toList());
+
+    Map<String, Object> body = new LinkedHashMap<>();
+    body.put("error", status.value());
+    body.put("reason", errors);
+
+    return new ResponseEntity<>(body, headers, status);
+  }
+  ...
+
+- Testing
+
+  - Start the application
+
+  - Open the Postman
+
+  - Send POST request
+

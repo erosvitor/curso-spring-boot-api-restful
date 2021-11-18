@@ -1,0 +1,254 @@
+
+====================================================================================================
+RESTFULL API COURSE - CONTENT NEGOTIATION
+====================================================================================================
+
+Adding XML content negotiation via query param
+----------------------------------------------------------------------------------------------------
+- Add the following dependency
+
+    ...
+    <!-- XML serialization -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+    </dependency>    
+    ...
+
+- Create the 'com.ctseducare.apirestful.config' package
+
+- Create the 'WebConfig' class
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+  
+  // VIA QUERY PARAMETER
+  @Override
+  public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+    configurer
+      .favorParameter(true)
+      .parameterName("mediaType")
+      .ignoreAcceptHeader(true)
+      .useRegisteredExtensionsOnly(false)
+      .defaultContentType(MediaType.APPLICATION_JSON)
+      .mediaType("json", MediaType.APPLICATION_JSON)
+      .mediaType("xml", MediaType.APPLICATION_XML);  
+  }
+  
+}
+
+- Change the methods on 'ExpenseController'
+
+  ...
+  @PostMapping(
+      value = "/expense",
+      consumes = { "application/json", "application/xml" },
+      produces = { "application/json", "application/xml" })
+  public ResponseEntity<Expense> insert(@Valid @RequestBody Expense expense) {
+    Expense result = service.insert(expense);
+    return ResponseEntity.ok(result);
+  }
+  
+  @GetMapping(
+      value = "/expense",
+      produces = { "application/json", "application/xml" })
+  public ResponseEntity<List<Expense>> findAll() {
+    List<Expense> result = service.findAll();
+    return ResponseEntity.ok(result);
+  }
+  
+  @PutMapping(
+      value = "/expense",
+      consumes = { "application/json", "application/xml" },
+      produces = { "application/json", "application/xml" })
+  public ResponseEntity<Expense> update(@RequestBody Expense expense) {
+    Expense result = service.update(expense);
+    return ResponseEntity.ok(result);
+  }
+  
+  @DeleteMapping(
+      value = "/expense/{id}",
+      produces = { "application/json", "application/xml" })
+  public ResponseEntity<Expense> delete(@PathVariable("id") Long id) {
+    Expense result = service.delete(id);
+    return ResponseEntity.ok(result);
+  }
+  ...
+
+- Add the followng annotations on LocalDate attibute
+
+  @JsonFormat(pattern = "dd/MM/yyyy") 
+  @DateTimeFormat(pattern = "dd/MM/yyyy")
+
+- Testing
+
+  - Start the application
+
+  - Open the Postman
+
+  - Add XML request
+
+    Method: POST
+    Url: http://localhost:8080/expense
+    Body:
+
+    <item>
+      <description>Gás</description>
+      <value>47.0</value>
+      <when>09/11/2021</when>
+    </item>
+
+  - Save and send the request
+
+  - Open H2 console and check if expense was inserted
+
+  - Change the GET request to
+
+    http://localhost:8080/expense?mediaType=json
+
+    or
+
+    http://localhost:8080/expense?mediaType=xml
+
+
+Adding XML content negotiation via header parameter
+----------------------------------------------------------------------------------------------------
+- Change the 'configureContentNegotiation' method as below
+
+  @Override
+  public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+    configurer
+      .favorParameter(false)
+      .ignoreAcceptHeader(false)
+      .useRegisteredExtensionsOnly(false)
+      .defaultContentType(MediaType.APPLICATION_JSON)
+      .mediaType("json", MediaType.APPLICATION_JSON)
+      .mediaType("xml", MediaType.APPLICATION_XML);  
+  }
+
+- Testing
+
+  - Start the application
+
+  - Open the Postman
+
+  - Add a header in the GET request
+
+    Accept = application/json
+
+    or
+
+    Accept = application/xml
+
+
+Adding YAML content negotiation
+----------------------------------------------------------------------------------------------------
+- Add the following dependency
+
+    ... 
+    <!-- YAML serialization -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+    <!-- Add-on module to support JSR-310 (Java 8 Date & Time API) data types -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+    </dependency>
+    ...
+
+- Add the following annotations in LocalDate attribute
+
+  @JsonSerialize(using = LocalDateSerializer.class)
+  @JsonDeserialize(using = LocalDateDeserializer.class)
+
+- Create the 'com.ctseducare.apirestful.yaml'
+
+- Create then 'YamlJackson2HttpMessageConverter' class
+
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
+
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+
+public final class YamlJackson2HttpMessageConverter extends AbstractJackson2HttpMessageConverter{
+
+	public YamlJackson2HttpMessageConverter() {
+		super(new YAMLMapper(), MediaType.parseMediaType("application/x-yaml"));
+	}
+
+}
+
+- Add the following method in the 'WebConfig' class
+
+  ...
+  private static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("application/x-yaml");
+  ...
+
+  ...
+  public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+		converters.add(new YamlJackson2HttpMessageConverter());
+	}
+  ...
+
+- Change the 'configureContentNegotiation' method as below
+
+  ...
+  @Override
+  public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+    configurer
+      .favorParameter(false)
+      .ignoreAcceptHeader(false)
+      .useRegisteredExtensionsOnly(false)
+      .defaultContentType(MediaType.APPLICATION_JSON)
+      .mediaType("json", MediaType.APPLICATION_JSON)
+      .mediaType("xml", MediaType.APPLICATION_XML)
+      .mediaType("x-yaml", MEDIA_TYPE_YML);
+  }
+  ...
+
+- Add 'application/x-yaml' in all consumes and produces of the Controller
+
+- Testing
+
+  - Start the application
+
+  - Open the Postman
+
+  - Add YAML request
+
+    Method: POST
+    Url: http://localhost:8080/expense
+    Body:
+
+    description: "Internet"
+    value: 119.0
+    when: "09/11/2021"
+
+    Tip: The Postman not has YAML support. The body request must be 'raw' and 'text' type
+ 
+  - Save and send the request
+
+  - Open H2 console and check if expense was inserted
+
+  - Add a header in the GET request
+
+    Accept = application/json
+
+    or
+
+    Accept = application/xml
+
+    or
+
+    Accept = application/x-yaml
+
+

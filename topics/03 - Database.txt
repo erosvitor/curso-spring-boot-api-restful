@@ -1,0 +1,44 @@
+
+====================================================================================================
+RESTFULL API COURSE - DATABASE
+====================================================================================================
+
+Adding H2 Database support
+----------------------------------------------------------------------------------------------------
+- Select the project, right click and choose Spring > Add Starters menu
+
+- Add the Spring Data JPA and H2 Database dependencies
+
+- Click on Next button
+
+- Resolve the merge and click on Finish button
+
+
+Setting the H2 Database
+----------------------------------------------------------------------------------------------------
+- Add following lines in 'application.properties' file
+
+spring.h2.console.enabled=true
+spring.datasource.url=jdbc:h2:mem:expenses
+spring.jpa.hibernate.ddl-auto=none
+
+- Create the 'schema.sql' file in 'src/main/resources' package
+
+CREATE TABLE expenses (
+  id INTEGER NOT NULL AUTO_INCREMENT,
+  description VARCHAR(100) NOT NULL,
+  value DECIMAL(11,2) NOT NULL,
+  when DATE NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+Testing the H2 Database
+----------------------------------------------------------------------------------------------------
+- Start the application
+
+- Access the H2 console
+
+  http://localhost:8080/h2-console
+
+

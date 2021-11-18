@@ -1,0 +1,213 @@
+
+====================================================================================================
+RESTFULL API COURSE - RESOURCES
+====================================================================================================
+
+Creating the Model layer
+----------------------------------------------------------------------------------------------------
+- Create the 'com.ctseducare.apirestful.model' package
+
+- Create the 'Expense' class
+
+@Entity
+@Table(name = "expenses")
+public class Expense {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  private String description;
+  private Double value;
+  private LocalDate when;
+
+  // Getters and Setters
+
+}
+
+
+Creating the Repository layer
+----------------------------------------------------------------------------------------------------
+- Create the 'com.ctseducare.apirestful.repository' package
+
+- Create the 'ExpenseRepository' interface
+
+public interface ExpenseRepository extends JpaRepository<Expense, Long> {
+
+}
+
+  Tip: Do not is necessary add the @Repository annotation in new versions of Spring Boot.
+
+
+Creating the Service layer
+----------------------------------------------------------------------------------------------------
+- Create the 'com.ctseducare.apirestful.service' package
+
+- Create the 'ExpenseService' class
+
+@Service
+public class ExpenseService {
+
+  @Autowired
+  private ExpenseRepository repository;
+  
+}
+
+
+Inserting an expense
+----------------------------------------------------------------------------------------------------
+- Add the following code in the 'ExpenseService' class
+
+  ...  
+  public Expense insert(Expense expense) {
+    return repository.save(expense);
+  }
+  ...
+
+- Add the following code in the 'ExpenseController' class
+
+  ...
+  @Autowired
+  private ExpenseService service;
+  
+  @PostMapping("expense")
+  public ResponseEntity<Expense> insert(@RequestBody Expense expense) {
+    Expense result = service.insert(expense);
+    return ResponseEntity.ok(result);
+  }
+
+- Testing the insertion
+
+  - Open the Postman
+
+  - Create new collection
+
+  - Add request
+
+    Method: POST
+    Url: http://localhost:8080/expense
+    Body:
+
+    {
+      "description": "Luz",
+      "value": 220.00,
+      "when": "2021-11-09"
+    }
+
+  - Save and send the request
+
+  - Open H2 console and check if expense was inserted
+
+
+Listing all expense
+----------------------------------------------------------------------------------------------------
+- Add the following code in the 'ExpenseService' class
+
+  ...
+  public List<Expense> findAll() {
+    return repository.findAll();
+  }
+  ...
+
+- Add the following code in the 'ExpenseController' class
+
+  ...
+  @GetMapping("/expense")
+  public ResponseEntity<List<Expense>> findAll() {
+    List<Expense> result = service.findAll();
+    return ResponseEntity.ok(result);
+  }
+  ...
+
+
+- Testing the selection
+
+  - Open the Postman
+
+  - Select the collection
+
+  - Add request
+
+    Method: GET
+    Url: http://localhost:8080/expense
+
+  - Save and send the request
+
+
+Updating expense
+----------------------------------------------------------------------------------------------------
+- Add the following code in the 'ExpenseService' class
+
+  ...
+  public Expense update(Expense expense) {
+    return repository.save(expense);
+  }
+  ...
+
+- Add the following code in the 'ExpenseController' class
+
+  ...
+  @PutMapping("/expense")
+  public ResponseEntity<Expense> update(@RequestBody Expense expense) {
+    Expense result = service.update(expense);
+    return ResponseEntity.ok(result);
+  }
+  ...
+
+- Testing the updation
+
+  - Open the Postman
+
+  - Select the collection
+
+  - Add request
+
+    Method: PUT
+    Url: http://localhost:8080/expense
+    Body:
+
+    {
+      "id": 1,
+      "description": "Luz",
+      "value": 250.00,
+      "when": "2021-11-09"
+    }
+
+  - Save and send the request
+
+
+Deleting expense
+----------------------------------------------------------------------------------------------------
+- Add the following code in the 'ExpenseService' class
+
+  ...
+  public Expense delete(Long id) {
+    Expense expense = repository.findById(id).get();
+    repository.deleteById(id);
+    return expense;
+  }
+  ...
+
+- Add the following code in the 'ExpenseController' class
+
+  ...
+  @DeleteMapping("/expense/{id}")
+  public ResponseEntity<Expense> delete(@PathVariable("id") Long id) {
+    Expense result = service.delete(id);
+    return ResponseEntity.ok(result);
+  }
+  ...
+
+- Testing the deletion
+
+  - Open the Postman
+
+  - Select the collection
+
+  - Add request
+
+    Method: DELETE
+    Url: http://localhost:8080/expense/1
+
+  - Save and send the request
+
+

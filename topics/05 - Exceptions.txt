@@ -1,0 +1,100 @@
+
+====================================================================================================
+RESTFULL API COURSE - EXCEPTIONS
+====================================================================================================
+
+Handle exceptions
+----------------------------------------------------------------------------------------------------
+- Create the 'com.ctseducare.apirestful.exception' package
+
+- Create the 'ResourceNotFoundException' class
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException{
+
+  private static final long serialVersionUID = 1L;
+
+  public ResourceNotFoundException(String exception) {
+    super(exception);
+  }
+
+}
+
+- Create the 'com.ctseducare.apirestful.exception.response' package
+
+- Create the 'ExceptionResponse' classe
+
+public class ExceptionResponse implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  private int error;
+  private String reason;
+
+  public ExceptionResponse(int error, String reason) {
+    this.error = error;
+    this.reason = reason;
+  }
+
+  public int getError() {
+    return error;
+  }
+
+  public String getReason() {
+    return reason;
+  }
+
+}
+
+- Create the 'com.ctseducare.apirestful.exception.hanble' package
+
+- Create the 'ResponseEntityExceptionHandlerCustom' classe
+
+@ControllerAdvice
+public class ResponseEntityExceptionHandlerCustom extends ResponseEntityExceptionHandler {
+
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public final ResponseEntity<ExceptionResponse> handleResourceNotFoundExceptions(Exception ex, WebRequest request) {
+    ExceptionResponse exceptionResponse = new ExceptionResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+    return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+  }
+  
+}
+
+- Change the update method in 'ExpenseService' class
+
+  ...
+  public Expense update(Expense expense) {
+    repository
+      .findById(expense.getId())
+      .orElseThrow(() -> new ResourceNotFoundException("Expense does not exist!"));
+    return repository.save(expense);
+  }
+  ...
+
+- Testing the handle exception
+
+  - Start the application
+
+  - Open the Postman
+
+  - Run the request to update an expense
+
+    You will see the message
+
+    {
+      "error": 404,
+      "reason": "Expense does not exist!"
+    }
+
+- Fixing the delete method
+
+  ...
+  public Expense delete(Long id) {
+    Expense expense = repository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Expense does not exist!"));
+    repository.deleteById(id);
+    return expense;
+  }
+

@@ -1,0 +1,48 @@
+
+====================================================================================================
+RESTFULL API COURSE - PROJECT
+====================================================================================================
+
+Creating the project
+----------------------------------------------------------------------------------------------------
+- Create 'Spring Starter Project' using the following data:
+
+  Name: spring-boot-api-restful
+  Type: Maven Project
+  Packaging: jar
+  Java Version: 16
+  Language: Java
+  Group: com.ctseducare
+  Artifact: apirestful
+  Version: 0.0.1-SNAPSHOT
+
+- Add the dependences:
+  - Spring Web
+
+
+Creating the Controller layer
+----------------------------------------------------------------------------------------------------
+- Create 'com.ctseducare.apirestful.controller' package
+ 
+- Create 'ExpenseController' class
+
+@RestController
+public class ExpenseController {
+
+  @GetMapping("/status")
+  String hello() {
+    return "I am UP!";
+  }
+
+}
+
+
+Verifing the Controller layer
+----------------------------------------------------------------------------------------------------
+- Start the application
+
+- Access the application
+
+  http://localhost:8080/status
+
+
